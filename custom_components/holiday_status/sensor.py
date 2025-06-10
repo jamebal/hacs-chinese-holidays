@@ -14,8 +14,8 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 _LOGGER = logging.getLogger(__name__)
 
-# 定义传感器更新频率（例如，每12小时更新一次）
-SCAN_INTERVAL = timedelta(hours=12)
+# 定义传感器更新频率（例如，每1小时更新一次）
+SCAN_INTERVAL = timedelta(hours=1)
 
 # API 地址
 API_BASE_URL = "http://tool.bitefu.net/jiari/?d={date}&info=1"
