@@ -19,10 +19,10 @@ def setup_platform(
     discovery_info: DiscoveryInfoType | None = None
 ) -> None:
     """Set up the sensor platform."""
-    add_entities([ExampleSensor()])
+    add_entities([HolidayStatus()])
 
 
-class ExampleSensor(SensorEntity):
+class HolidayStatus(SensorEntity):
     """Representation of a Sensor."""
 
     _attr_name = "Example Temperature"
