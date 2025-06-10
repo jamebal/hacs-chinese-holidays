@@ -1,11 +1,12 @@
 {
   "domain": "holiday_status",
-  "name": "节假日状态",
+  "name": "Holiday Status",
   "version": "0.0.1",
   "codeowners": ["@jamebal"],
   "documentation": "https://github.com/jamebal/hacs-chinese-holidays",
   "issue_tracker": "https://github.com/jamebal/hacs-chinese-holidays/issues",
   "dependencies": [],
   "requirements": [],
-  "iot_class": "cloud_polling"
+  "iot_class": "cloud_polling",
+  "brand_image": "logo.svg"
 }
