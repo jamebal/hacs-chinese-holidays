@@ -26,6 +26,7 @@ class AbcStatus(SensorEntity):
     """Representation of a Sensor."""
 
     _attr_name = "Example Temperature"
+    _attr_unique_id = f"holiday_today_status_sensor"
     _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
     _attr_device_class = SensorDeviceClass.TEMPERATURE
     _attr_state_class = SensorStateClass.MEASUREMENT
@@ -35,4 +36,4 @@ class AbcStatus(SensorEntity):
 
         This is the only method that should fetch new data for Home Assistant.
         """
-        self._attr_native_value = 23
+        self._attr_native_value = 26
