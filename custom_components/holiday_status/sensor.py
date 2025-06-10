@@ -11,9 +11,11 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.event import async_track_time_change # 导入时间事件追踪器
 
 _LOGGER = logging.getLogger(__name__)
+
+# 定义传感器更新频率（例如，每12小时更新一次）
+SCAN_INTERVAL = timedelta(hours=12)
 
 # API 地址
 API_BASE_URL = "http://tool.bitefu.net/jiari/?d={date}&info=1"
@@ -43,16 +45,11 @@ class HolidayStatusSensor(SensorEntity):
     _attr_unique_id = "holiday_today_status_sensor"
     _attr_icon = "mdi:calendar" # 为传感器设置一个日历图标
 
-    # 关键改变: 告诉 Home Assistant 这个实体不应该被定期轮询
-    # 因为我们自己会管理更新时间
-    _attr_should_poll = False
-
     def __init__(self, hass: HomeAssistant) -> None:
         """Initialize the sensor."""
         self.hass = hass
         self._state = None
         self._attributes = {}
-        self._unsub_listener = None # 用于存储取消定时任务的句柄
         _LOGGER.debug("HolidayStatusSensor initialized")
 
     @property
@@ -65,40 +62,11 @@ class HolidayStatusSensor(SensorEntity):
         """Return the state attributes."""
         return self._attributes
 
-    async def async_added_to_hass(self) -> None:
-        """Run when this entity has been added to Home Assistant."""
-        _LOGGER.debug(f"HolidayStatusSensor {self.entity_id} added to Home Assistant.")
-        # 首次加载时立即更新一次状态
-        await self._async_update_data()
-
-        # 注册一个每天凌晨 00:00:01 更新的回调
-        # async_track_time_change 会返回一个取消函数，我们需要在实体移除时调用它
-        self._unsub_listener = async_track_time_change(
-            self.hass,
-            self._schedule_update,
-            hour=17,
-            minute=20,
-            second=1
-        )
-        _LOGGER.debug(f"Scheduled daily update for {self.entity_id} at 00:01:00.")
-
-    async def async_will_remove_from_hass(self) -> None:
-        """Run when this entity will be removed from Home Assistant."""
-        _LOGGER.debug(f"HolidayStatusSensor {self.entity_id} will be removed from Home Assistant.")
-        # 在实体移除时取消定时任务，防止内存泄漏
-        if self._unsub_listener:
-            self._unsub_listener()
-            self._unsub_listener = None
-            _LOGGER.debug(f"Cancelled daily update schedule for {self.entity_id}.")
-
-    async def _schedule_update(self, now: datetime | None = None) -> None:
-        """Callback for the scheduled time update."""
-        _LOGGER.debug(f"Scheduled update triggered for {self.entity_id} at {now}.")
-        await self._async_update_data()
-
-    async def _async_update_data(self) -> None:
-        """Fetch new state data for the sensor and update HA state."""
-        _LOGGER.debug(f"Starting data fetch for {self.entity_id}")
+    async def async_update(self) -> None:
+        """Fetch new state data for the sensor.
+        This is the only method that should fetch new data for Home Assistant.
+        """
+        _LOGGER.debug("Starting HolidayStatusSensor update")
         session = async_get_clientsession(self.hass)
         today = datetime.now()
 
@@ -131,7 +99,7 @@ class HolidayStatusSensor(SensorEntity):
                             "date": today.strftime("%Y-%m-%d"),
                             "last_updated": datetime.now().isoformat()
                         }
-                        _LOGGER.info(f"Holiday status for {self.entity_id} updated to: {self._state} ({holiday_typename})")
+                        _LOGGER.info(f"Holiday status updated to: {self._state} ({holiday_typename})")
                     else:
                         self._state = "未知"
                         self._attributes = {
@@ -150,17 +118,8 @@ class HolidayStatusSensor(SensorEntity):
         except async_timeout.TimeoutError:
             self._state = "错误"
             self._attributes = {"error": "API请求超时"}
-            _LOGGER.error(f"Failed to fetch holiday status for {self.entity_id}: API request timed out for {url}")
+            _LOGGER.error(f"Failed to fetch holiday status: API request timed out for {url}")
         except Exception as e:
             self._state = "错误"
             self._attributes = {"error": f"API请求失败: {e}"}
-            _LOGGER.error(f"Failed to fetch holiday status for {self.entity_id}: {e}", exc_info=True)
-        finally:
-            # 无论成功或失败，都通知 Home Assistant 状态可能已更改
-            self.async_write_ha_state()
-
-    # 仍然保留 async_update 方法，以防用户手动从开发者工具调用 homeassistant.update_entity 服务
-    async def async_update(self) -> None:
-        """Manual update hook for Home Assistant."""
-        _LOGGER.debug(f"Manual update triggered for {self.entity_id}.")
-        await self._async_update_data()
+            _LOGGER.error(f"Failed to fetch holiday status: {e}", exc_info=True)
