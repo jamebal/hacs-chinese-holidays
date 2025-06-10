@@ -7,5 +7,5 @@
   "issue_tracker": "https://github.com/jamebal/hacs-chinese-holidays/issues",
   "dependencies": [],
   "requirements": [],
-  "iot_class": "cloud_polling",
+  "iot_class": "cloud_polling"
 }
