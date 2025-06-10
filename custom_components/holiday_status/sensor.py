@@ -76,8 +76,8 @@ class HolidayStatusSensor(SensorEntity):
         self._unsub_listener = async_track_time_change(
             self.hass,
             self._schedule_update,
-            hour=0,
-            minute=0,
+            hour=17,
+            minute=20,
             second=1
         )
         _LOGGER.debug(f"Scheduled daily update for {self.entity_id} at 00:01:00.")
