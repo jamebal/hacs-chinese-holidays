@@ -2,7 +2,6 @@ import asyncio
 import logging
 import sys
 import os
-from datetime import date, timedelta
 import aiohttp # 确保这里导入了 aiohttp
 
 # 配置日志，以便看到您的集成中的调试信息
@@ -63,11 +62,11 @@ _LOGGER.debug("homeassistant.helpers.aiohttp_client.async_get_clientsession has 
 
 # 现在可以从您的自定义集成中导入模块了
 try:
-    from holiday_status.const import (
+    from custom_components.holiday_status.const import (
         DOMAIN, SENSOR_NAME, ICON, HOLIDAY_API_URL, API_TIMEOUT,
         STATE_WEEKDAY, STATE_WEEKEND, STATE_HOLIDAY, SCAN_INTERVAL
     )
-    from holiday_status.sensor import HolidayStatusSensor # 导入您的传感器类
+    from custom_components.holiday_status.sensor import HolidayStatusSensor # 导入您的传感器类
 except ImportError as e:
     _LOGGER.error(f"无法导入自定义集成模块。请确认文件路径和虚拟环境设置正确。错误: {e}")
     _LOGGER.error(f"当前 sys.path: {sys.path}")
